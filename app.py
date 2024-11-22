@@ -3,25 +3,25 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui' 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tarefas.db'  # Usando SQLite
+aplicacao = Flask(__name__)
+aplicacao.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'  # Substitua por uma chave secreta forte
+aplicacao.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tarefas.db'
 
-db = SQLAlchemy(app)
+banco_de_dados = SQLAlchemy(aplicacao)
 
-from models import Usuario, Tarefa  # Importe as classes do models.py
+from models import Usuario, Tarefa
 
 # --- Rotas ---
 
-@app.route('/')
+@aplicacao.route('/')
 def index():
     if 'usuario_id' in session:
         usuario = Usuario.query.get(session['usuario_id'])
         tarefas = Tarefa.query.filter_by(usuario_id=usuario.id).all()
         return render_template('index.html', tarefas=tarefas, usuario=usuario)
-    return redirect(url_for('login'))
+    return render_template('index.html')  # Renderiza index.html mesmo se não estiver logado
 
-@app.route('/login', methods=['GET', 'POST'])
+@aplicacao.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
@@ -32,9 +32,9 @@ def login():
             return redirect(url_for('index'))
         else:
             flash('Credenciais inválidas.')
-    return render_template('login.html')
+    return redirect(url_for('index'))  # Redireciona para index.html após o login
 
-@app.route('/cadastro', methods=['GET', 'POST'])
+@aplicacao.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'POST':
         nome = request.form['nome']
@@ -46,18 +46,18 @@ def cadastro():
         else:
             senha_hash = generate_password_hash(senha)
             novo_usuario = Usuario(nome=nome, email=email, senha=senha_hash)
-            db.session.add(novo_usuario)
-            db.session.commit()
+            banco_de_dados.session.add(novo_usuario)
+            banco_de_dados.session.commit()
             flash('Cadastro realizado com sucesso!')
             return redirect(url_for('login'))
     return render_template('cadastro.html')
 
-@app.route('/logout')
+@aplicacao.route('/logout')
 def logout():
     session.pop('usuario_id', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
-@app.route('/criar', methods=['GET', 'POST'])
+@aplicacao.route('/criar', methods=['GET', 'POST'])
 def criar_tarefa():
     if 'usuario_id' in session:
         if request.method == 'POST':
@@ -67,16 +67,16 @@ def criar_tarefa():
             if prazo:
                 prazo = datetime.strptime(prazo, '%Y-%m-%d').date()
             nova_tarefa = Tarefa(titulo=titulo, descricao=descricao, prazo=prazo, usuario_id=session['usuario_id'])
-            db.session.add(nova_tarefa)
-            db.session.commit()
+            banco_de_dados.session.add(nova_tarefa)
+            banco_de_dados.session.commit()
             return redirect(url_for('index'))
-        return render_template('criar_tarefa.html')  # Crie este template!
+        return render_template('criar_tarefa.html')
     return redirect(url_for('login'))
 
-@app.route('/editar/<int:id>', methods=['GET', 'POST'])
-def editar_tarefa(id):
+@aplicacao.route('/editar/<int:id>', methods=['GET', 'POST'])
+def editar_tarefa(identificador):
     if 'usuario_id' in session:
-        tarefa = Tarefa.query.get_or_404(id)
+        tarefa = Tarefa.query.get_or_404(identificador)
         if tarefa.usuario_id != session['usuario_id']:
             flash('Você não tem permissão para editar esta tarefa.')
             return redirect(url_for('index'))
@@ -89,24 +89,24 @@ def editar_tarefa(id):
             else:
                 tarefa.prazo = None
             tarefa.status = request.form['status']
-            db.session.commit()
+            banco_de_dados.session.commit()
             return redirect(url_for('index'))
-        return render_template('editar_tarefa.html', tarefa=tarefa)  # Crie este template!
+        return render_template('editar_tarefa.html', tarefa=tarefa)
     return redirect(url_for('login'))
 
-@app.route('/excluir/<int:id>')
-def excluir_tarefa(id):
+@aplicacao.route('/excluir/<int:id>')
+def excluir_tarefa(identificador):
     if 'usuario_id' in session:
-        tarefa = Tarefa.query.get_or_404(id)
+        tarefa = Tarefa.query.get_or_404(identificador)
         if tarefa.usuario_id != session['usuario_id']:
             flash('Você não tem permissão para excluir esta tarefa.')
             return redirect(url_for('index'))
-        db.session.delete(tarefa)
-        db.session.commit()
+        banco_de_dados.session.delete(tarefa)
+        banco_de_dados.session.commit()
         return redirect(url_for('index'))
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    with aplicacao.app_context():
+        banco_de_dados.create_all()
+    aplicacao.run(debug=True)
