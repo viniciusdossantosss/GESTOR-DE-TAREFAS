@@ -7,28 +7,38 @@
 <body>
     <div class="container">
         <h1>Lista de Tarefas</h1>
-        {% if usuario %}
+
+        {% if usuario %} 
             <p>Olá, {{ usuario.nome }}! <a href="{{ url_for('logout') }}">Sair</a></p>
-        {% endif %}
+            <a href="{{ url_for('criar_tarefa') }}" class="btn btn-primary">Criar Tarefa</a>
 
-        <a href="{{ url_for('criar_tarefa') }}" class="btn btn-primary">Criar Tarefa</a>
+            <ul class="list-group">
+                {% for tarefa in tarefas %}
+                    <li class="list-group-item">
+                        <h3>{{ tarefa.titulo }}</h3>
+                        {% if tarefa.descricao %}
+                            <p>{{ tarefa.descricao }}</p>
+                        {% endif %}
+                        {% if tarefa.prazo %}
+                            <p>Prazo: {{ tarefa.prazo.strftime('%d/%m/%Y') }}</p>
+                        {% endif %}
+                        <p>Status: {{ tarefa.status }}</p>
+                        <a href="{{ url_for('editar_tarefa', id=tarefa.id) }}" class="btn btn-warning">Editar</a>
+                        <a href="{{ url_for('excluir_tarefa', id=tarefa.id) }}" class="btn btn-danger">Excluir</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %} 
 
-        <ul class="list-group">
-            {% for tarefa in tarefas %}
-                <li class="list-group-item">
-                    <h3>{{ tarefa.titulo }}</h3>
-                    {% if tarefa.descricao %}
-                        <p>{{ tarefa.descricao }}</p>
-                    {% endif %}
-                    {% if tarefa.prazo %}
-                        <p>Prazo: {{ tarefa.prazo.strftime('%d/%m/%Y') }}</p>
-                    {% endif %}
-                    <p>Status: {{ tarefa.status }}</p>
-                    <a href="{{ url_for('editar_tarefa', id=tarefa.id) }}" class="btn btn-warning">Editar</a>
-                    <a href="{{ url_for('excluir_tarefa', id=tarefa.id) }}" class="btn btn-danger">Excluir</a>
-                </li>
-            {% endfor %}
-        </ul>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
     </div>
 </body>
 </html>

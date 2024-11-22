@@ -15,11 +15,12 @@ from models import Usuario, Tarefa
 
 @aplicacao.route('/')
 def index():
-    if 'usuario_id' in session:
+    if 'usuario_id' in session:  # Verifica se o usuário está logado
         usuario = Usuario.query.get(session['usuario_id'])
         tarefas = Tarefa.query.filter_by(usuario_id=usuario.id).all()
         return render_template('index.html', tarefas=tarefas, usuario=usuario)
-    return render_template('index.html')  # Renderiza index.html mesmo se não estiver logado
+    else:
+        return redirect(url_for('login'))  # Redireciona para a página de login
 
 @aplicacao.route('/login', methods=['GET', 'POST'])
 def login():
