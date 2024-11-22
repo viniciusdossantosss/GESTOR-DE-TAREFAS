@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Tarefa</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> 
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Tarefa</h1>
+        <form method="POST" action="{{ url_for('editar_tarefa', id=tarefa.id) }}">
+            <div class="form-group">
+                <label for="titulo">Título:</label>
+                <input type="text" class="form-control" id="titulo" name="titulo" value="{{ tarefa.titulo }}" required>
+            </div>
+            <div class="form-group">
+                <label for="descricao">Descrição:</label>
+                <textarea class="form-control" id="descricao" name="descricao">{{ tarefa.descricao }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="prazo">Prazo (YYYY-MM-DD):</label>
+                <input type="date" class="form-control" id="prazo" name="prazo" value="{% if tarefa.prazo %}{{ tarefa.prazo.strftime('%Y-%m-%d') }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="pendente" {% if tarefa.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="em andamento" {% if tarefa.status == 'em andamento' %}selected{% endif %}>Em Andamento</option>
+                    <option value="concluida" {% if tarefa.status == 'concluida' %}selected{% endif %}>Concluída</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </form>
+    </div>
+</body>
+</html>
