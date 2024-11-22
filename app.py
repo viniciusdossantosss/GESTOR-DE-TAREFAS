@@ -1,16 +1,28 @@
-
 from flask import Flask
 from models import db, criar_banco
 from routes import init_routes
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SECRET_KEY'] = 'sua_chave_secreta'
+def create_app():
+    # Inicializa a aplicação Flask
+    app = Flask(__name__)
+    
+    # Configurações da aplicação
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = 'sua_chave_secreta'
 
-db.init_app(app)
-init_routes(app)
+    # Inicializa o banco de dados
+    db.init_app(app)
+    
+    # Cria o banco de dados e as tabelas
+    with app.app_context():
+        db.create_all()
+    
+    # Configura as rotas
+    init_routes(app)
+    
+    return app
 
 if __name__ == '__main__':
-    with app.app_context():
-        criar_banco()
+    app = create_app()
     app.run(debug=True)
