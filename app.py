@@ -109,4 +109,5 @@ def excluir_tarefa(identificador):
 if __name__ == '__main__':
     with aplicacao.app_context():
         banco_de_dados.create_all()
+    from app import aplicacao 
     aplicacao.run(debug=True)
