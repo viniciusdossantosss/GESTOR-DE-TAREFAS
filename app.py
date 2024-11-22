@@ -13,25 +13,25 @@ if os.environ.get('SECRET_KEY') is None:
 else:
     secret_key = os.environ.get('SECRET_KEY')
 
+# Configuração da aplicação
 aplicacao = Flask(__name__)
 aplicacao.config['SECRET_KEY'] = secret_key
 aplicacao.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tarefas.db'  # Ou configure para PostgreSQL
 
-banco_de_dados = SQLAlchemy()
-banco_de_dados.init_app(aplicacao)
+# Configuração do banco de dados
+banco_de_dados = SQLAlchemy(aplicacao)
 
+# Importar modelos após a inicialização do banco de dados
 from models import Usuario, Tarefa
 
 # --- Rotas ---
-
 @aplicacao.route('/')
 def index():
     if 'usuario_id' in session:
         usuario = Usuario.query.get(session['usuario_id'])
         tarefas = Tarefa.query.filter_by(usuario_id=usuario.id).all()
         return render_template('index.html', tarefas=tarefas, usuario=usuario)
-    else:
-        return redirect(url_for('login'))
+    return redirect(url_for('login'))
 
 @aplicacao.route('/login', methods=['GET', 'POST'])
 def login():
@@ -74,5 +74,4 @@ def logout():
 if __name__ == '__main__':
     with aplicacao.app_context():
         banco_de_dados.create_all()
-    from app import aplicacao
     aplicacao.run(debug=True)
