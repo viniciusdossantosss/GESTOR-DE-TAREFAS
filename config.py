@@ -1,23 +1,17 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+import os
 
-# Inicializa o objeto SQLAlchemy
-banco_de_dados = SQLAlchemy()
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'sua_chave_secreta_aqui'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'postgresql://usuario:senha@host:5432/nome_do_banco_de_dados'
 
-def create_app():
-    """Cria e configura o aplicativo Flask."""
-    app = Flask(__name__)
+class DevelopmentConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Configurações do aplicativo
-    app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'  # Substitua por uma chave segura
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tarefas.db'  # Ou outro banco (PostgreSQL, MySQL)
+class TestingConfig(DevelopmentConfig):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'  # Ou outro banco de dados para testes
 
-    # Inicializa o SQLAlchemy com o aplicativo
-    banco_de_dados.init_app(app)
-
-    # Importa rotas e modelos no contexto da aplicação
-    with app.app_context():
-        from models import Usuario, Tarefa
-        banco_de_dados.create_all()  # Cria as tabelas no banco
-
-    return app
+class ProductionConfig(Config):
+    DEBUG = False
