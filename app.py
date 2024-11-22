@@ -4,7 +4,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 aplicacao = Flask(__name__)
-aplicacao.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'  # Substitua por uma chave secreta forte
+aplicacao.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'  # Substitua por uma chave secreta forte!
 aplicacao.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tarefas.db'
 
 banco_de_dados = SQLAlchemy(aplicacao)
@@ -15,12 +15,12 @@ from models import Usuario, Tarefa
 
 @aplicacao.route('/')
 def index():
-    if 'usuario_id' in session:  # Verifica se o usuário está logado
+    if 'usuario_id' in session:
         usuario = Usuario.query.get(session['usuario_id'])
         tarefas = Tarefa.query.filter_by(usuario_id=usuario.id).all()
         return render_template('index.html', tarefas=tarefas, usuario=usuario)
     else:
-        return redirect(url_for('login'))  # Redireciona para a página de login
+        return redirect(url_for('login'))  # Redireciona para login se não estiver logado
 
 @aplicacao.route('/login', methods=['GET', 'POST'])
 def login():
@@ -30,10 +30,11 @@ def login():
         usuario = Usuario.query.filter_by(email=email).first()
         if usuario and check_password_hash(usuario.senha, senha):
             session['usuario_id'] = usuario.id
-            return redirect(url_for('index'))
+            return redirect(url_for('index'))  # Redireciona para index APENAS se o login for bem-sucedido
         else:
             flash('Credenciais inválidas.')
-    return redirect(url_for('index'))  # Redireciona para index.html após o login
+    return render_template('login.html')  # Renderiza o template de login se não houver POST ou login falhar
+
 
 @aplicacao.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
@@ -110,5 +111,5 @@ def excluir_tarefa(identificador):
 if __name__ == '__main__':
     with aplicacao.app_context():
         banco_de_dados.create_all()
-    from app import aplicacao 
+    from app import aplicacao
     aplicacao.run(debug=True)
